@@ -1505,7 +1505,6 @@ var waxjs = function(t) {
                                             return [4, this.canAutoSign(t)];
                                         case 1:
                                             return n.sent() ? [3, 3] : (r = this, [4, window.open(p, "WaxPopup", "height=800,width=600")]);
-                                            //return n.sent() ? [3, 3] : (r = this, [4, window.open(p)]);
                                         case 2:
                                             r.signingWindow = n.sent(), n.label = 3;
                                         case 3:
@@ -2824,7 +2823,7 @@ var waxjs = function(t) {
                         case 0:
                             return r ? (a = r, [3, 3]) : [3, 1];
                         case 1:
-                            return n.sent() ? [3, 3] : (r = this, [4, window.open(p, "WaxPopup", "height=800,width=600")]);
+                            return [4, window.open(t, "WaxPopup", "height=800,width=600")];
                         case 2:
                             a = l.sent(), l.label = 3;
                         case 3:
