@@ -90,7 +90,7 @@ class loginz {
                 timer: 2500
             })
             setTimeout(function () {
-                window.location.reload();
+                location.reload();
             }, 3000);
         } else {
             //console.log('Dont Err Get Time Mining')
@@ -105,7 +105,7 @@ class loginz {
                 timer: 2500
             })
             setTimeout(function () {
-                window.location.reload();
+                location.reload();
             }, 3000);
         } else {
             //console.log('Dont Err Mine too soon')
@@ -120,7 +120,7 @@ class loginz {
                 timer: 2500
             })
             setTimeout(async function () {
-                window.location.reload();
+                location.reload();
             }, 3000);
         } else {
             //console.log('Dont Err NaN')
@@ -137,7 +137,7 @@ class loginz {
                         timer: 2500
                     })
                     setTimeout(async function () {
-                        window.location.reload();
+                        location.reload();
                     }, 3000);
                 }
             }, 30000);

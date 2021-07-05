@@ -2,7 +2,6 @@
 class bot {
 
   constructor() {
-    this.checkCpuPercent = parseInt(document.getElementById("cpu").value);
     this.checkMinedelay = false;
     this.autoClaimnfts;
     this.waitNoceMine;
@@ -10,8 +9,11 @@ class bot {
     this.Acceptmine = false;
     this.counttimetomine = 0;
     this.counttimetoST = 0;
+    this.counttimestop = false;
+    this.ban = 0;
     this.balanceBefore;
     this.waitNoceMine = false;
+    this.checkInvalid;
   }
 
 
@@ -54,7 +56,7 @@ class bot {
       this.appendMessage(`Error:${err.message}`)
       //send bypass line notify
       if (this.lineToken !== '') {
-        await this.postData(this.lineBypassUrl, { token: this.lineToken, message: `Fetch:error, User:${userAccount}, Message:${err.message}` })
+        //await this.postData(this.lineBypassUrl, { token: this.lineToken, message: `Fetch:error, User:${userAccount}, Message:${err.message}` })
       }
       return false;
     }
@@ -101,8 +103,10 @@ class bot {
         callback(task) {
           // code to be executed on each run   
           //console.log(`${task.id} task has run times.${Math.ceil(task.totalRuns - task.currentRuns)}`);
+          if (bott.counttimestop == false){
           document.getElementById("text-cooldown").innerHTML = Math.ceil(task.totalRuns - task.currentRuns) + " Sec"
           document.getElementsByTagName('title')[0].text = `${wax.userAccount} - ${Math.ceil(task.totalRuns - task.currentRuns)} Sec`
+          }
         }
       },
       {
@@ -123,15 +127,18 @@ class bot {
         }
       }
     ]);
+    this.counttimestop = false
     await timer.start()
   }
 
   async CPUchecked() {
     const CpuCheckAllTime = parseInt(document.getElementById("CpuPercentProgress").value);
-    if (this.checkCpuPercent != 0) {
-      if (CpuCheckAllTime > this.checkCpuPercent) {
+    const checkCpuPercent = parseInt(document.getElementById("cpu").value)
+    console.log('CPU CHECK PERCENT : ' + checkCpuPercent)
+    if (checkCpuPercent != 0) {
+      if (CpuCheckAllTime > checkCpuPercent) {
         this.counttimetomine++
-        this.appendMessage("CPU Check = " + CpuCheckAllTime + " % [NOT Passed!]")
+        this.appendMessage("CPU Check = Over " + checkCpuPercent + "% [NOT Passed!]")
         this.appendMessage(`Counting (${this.counttimetomine}/60)--> Mine`)
         if (this.counttimetomine == 60) {
           this.counttimetomine = 0
@@ -142,7 +149,7 @@ class bot {
           await bott.timerForMine(this.TimeWait)
         }
       } else {
-        this.appendMessage("CPU Check = " + CpuCheckAllTime + " % [Passed Go Mine]")
+        this.appendMessage("CPU Check = " + CpuCheckAllTime + "% [Passed Go Mine]")
         this.counttimetomine = 0
         await Promise.all([bott.mine(), botzz.CheckingMinings()]);
       }
@@ -164,43 +171,25 @@ class bot {
       document.getElementsByTagName('title')[0].text = userAccount
       await botzz.MonitorRealtime();
       this.appendMessage(`Welcome ${userAccount}`)
-      const minedelay = await getMineDelay(userAccount);
-      //this.appendMessage(`Minedelay ${minedelay}`)
-      this.TimeWait = Math.ceil(minedelay + 10000);
+      const minedelay = await getMineDelay(userAccount);      
+      this.TimeWait = Math.ceil(minedelay + 12000);
       await bott.timerForMine(this.TimeWait)
 
       await this.delay(3000);
 
       var errCheckTxtCooldownz = document.getElementById("text-cooldown").innerHTML
       const errCheckNaNz = "NaN Sec";
-      if (errCheckNaNz == errCheckTxtCooldownz) {
-        /*Swal.fire({
-          icon: 'info',
-          title: 'Auto Get time again',
-          html: 'Detected Error!' + errCheckNaNz,
-          showConfirmButton: false,
-          timer: 2500
-        })
-        setTimeout(async function () {
-          location.reload();
-        }, 3000);*/
+      if (errCheckNaNz == errCheckTxtCooldownz) {        
         location.reload();
       } else {
         console.log(`Time Fine ${errCheckTxtCooldownz}`)
         document.getElementById("btn-controller").innerHTML = "OK"
       }
-    } catch (error) {
+    } catch (err) {
       //this.isBotRunning = false
-      this.appendMessage(`Error:${error.message}`)
-      console.log(`Error:${error.message}`)
-      /*Swal.fire({
-        icon: 'error',
-        title: 'Restart...',
-        html: 'Detected Error!..' + error,// + br + '• แก้ไข Transaction ลดปัญหาการติด  User Declined' + br + '• ลดระยะเวลายกเลิกหน้า CAPTCHA ลงเหลือ 70 วินาที ' + br + '• อัพเดท AutoClick v.1.1 ',
-        showConfirmButton: false,
-        timer: 2500
-      })
-      await this.delay(3000);*/
+      this.appendMessage(`Error:${err.message}`)
+      console.log(`Error:${err.message}`)      
+      await this.delay(5000);
       location.reload();
     }
   }
@@ -230,53 +219,103 @@ class bot {
     ];
     try {
       const result = await wax.api.transact({ actions }, { blocksBehind: 3, expireSeconds: 90 });
-      /*if (result && result.processed) {
-        let mined_amount = 0;
-        await result.processed.action_traces[0].inline_traces.forEach((t) => {
-          if (t.act.account === 'alien.worlds' && t.act.name === 'transfer' && t.act.data.to === wax.userAccount) {
-            const [amount_str] = t.act.data.quantity.split(' ');
-            this.appendMessage(`Test:${t.act.data.quantity.toString()}`)
-            mined_amount += parseFloat(amount_str);
-          }
-        });
-        document.getElementById("TLMPerRound").innerHTML = mined_amount.toString() + ' TLM'
-        this.appendMessage(mined_amount.toString() + ' TLM', '2')
-      }*/
-    } catch (error) {
-      console.log(`%c[Bot] Error:${error.message}`, 'color:red');
-      this.appendMessage(`Error:${error.message}`)
-      Swal.fire({
-        icon: 'error',
-        title: 'Restart...',
-        html: 'Detected Error!' + error,// + br + '• แก้ไข Transaction ลดปัญหาการติด  User Declined' + br + '• ลดระยะเวลายกเลิกหน้า CAPTCHA ลงเหลือ 70 วินาที ' + br + '• อัพเดท AutoClick v.1.1 ',
-        showConfirmButton: false,
-        timer: 2500
-      })
-      await this.delay(3000)
-      window.location.reload();
+      if (result && result.processed) {
+        await this.delay(5000);
+        const userAccount = document.getElementById("text-user").innerHTML
+        const minedelay = await getMineDelay(userAccount);
+        this.appendMessage(`MineDelay True ${Math.ceil(minedelay / 1000)} Sec`)
+        var randTimeout = (Math.random() * 10000) + (30000 * Math.random()) + 5000;
+        this.TimeWait = Math.ceil(minedelay + randTimeout);
+        const errCheckNaNz = "NaN Sec";
+        if (errCheckNaNz != this.TimeWait) {
+          this.counttimestop = true
+          await bott.timerForMine(this.TimeWait)
+          this.appendMessage(`MineDelay Used ${Math.ceil(this.TimeWait / 1000)} Sec`)
+          //console.log(`Time Fine ${this.TimeWait}`)         
+        } else {
+          this.appendMessage(`Balance :${balanceAfter}`)
+          setTimeout(async function () {
+            const userAccount = document.getElementById("text-user").innerHTML
+            const minedelay = await getMineDelay(userAccount);
+            this.appendMessage(`MineDelay True ${Math.ceil(minedelay / 1000)} Sec`)
+            var randTimeout = (Math.random() * 10000) + (30000 * Math.random()) + 5000;
+            this.TimeWait = Math.ceil(minedelay + randTimeout);
+            const errCheckNaNz = "NaN Sec";
+            if (errCheckNaNz == this.TimeWait) {
+              location.reload();
+            } else {
+              this.counttimestop = true
+              await bott.timerForMine(this.TimeWait)
+              this.appendMessage(`MineDelay Used ${Math.ceil(this.TimeWait / 1000)} Sec`)
+            }
+          }, 30000);
+        }
+      }
+    } catch (err) {
+      console.log(`Mine false : ${err.message}`);
+      //this.appendMessage(`Error : ${err.message}`)
+      if (err.message.indexOf("Mine too soon") > -1) {
+        this.appendMessage(`Status Error : "Mine too soon" `)
+        const userAccount = document.getElementById("text-user").innerHTML
+        const minedelay = await getMineDelay(userAccount);
+        this.TimeWait = Math.ceil(minedelay + 10000);
+        this.counttimestop = true
+        await bott.timerForMine(this.TimeWait)
+        this.appendMessage(`Status : Return to check MineDelay again`)
+      }
+      if (err.message.indexOf("INVALID_HASH") > -1) {
+        this.appendMessage(`Status Error : "INVALID HASH" `)
+        await this.delay(5000);
+        location.reload();
+      }
+      if (err.message.indexOf("NOTHING_TO_MINE") > -1) {
+        this.ban++;
+        this.appendMessage(`Status Error : NOTHING_TO_MINE (${this.ban}/3)`)
+        await this.delay(5000);
+        if (this.ban != 3) {
+          const userAccount = document.getElementById("text-user").innerHTML
+          const minedelay = await getMineDelay(userAccount);
+          this.TimeWait = Math.ceil(minedelay + 10000);
+          this.counttimestop = true
+          await bott.timerForMine(this.TimeWait)
+          this.appendMessage(`Status : Try to mine again`)
+        } else {          
+          document.getElementsByTagName('title')[0].text = `ID has been Banned`
+          Swal.fire({
+            icon: 'error',
+            title: 'Your id has been banned',
+            html: 'The system will shut down for another 4 hours.',
+            showConfirmButton: false,
+            timer: 14400000
+          })
+          await this.delay(14400000);          
+        }
+      }
+
+      if (err.message.indexOf("Failed to fetch") > -1) {
+        this.appendMessage(`Status Error : Failed to fetch`)
+        this.appendMessage(`Status : Reload`)
+        await this.delay(5000);
+        location.reload();
+      }
+      if (err.message.indexOf("Cannot mine with an empty bag") > -1) {
+        this.appendMessage(`Status Error : Please set bag first`)
+        Swal.fire({
+          icon: 'info',
+          title: 'Empty bag',
+          html: 'Please set bag first.',
+          showConfirmButton: true          
+        })
+      }
+      if (err.message.indexOf("maximum billable CPU time") > -1) {
+        this.appendMessage(`Status Error : CPU Overload`)
+        this.appendMessage(`Status : Return check CPU again`)
+        await this.delay(5000);
+        await bott.CPUchecked()
+      }
+
     }
-    await this.delay(5000);
-    const userAccount = document.getElementById("text-user").innerHTML
-    const minedelay = await getMineDelay(userAccount);
-    this.appendMessage(`Minedelay ${minedelay}`)
-    this.TimeWait = Math.ceil(minedelay + 12000);
-    const errCheckNaNz = "NaN Sec";
-    if (errCheckNaNz != this.TimeWait) {
-      await bott.timerForMine(this.TimeWait)
-      this.appendMessage(`Cooldown for ${Math.ceil(this.TimeWait / 1000)} Sec`)
-      //console.log(`Time Fine ${this.TimeWait}`)         
-    } else {
-      Swal.fire({
-        icon: 'info',
-        title: 'Auto Get time again',
-        html: 'Detected Error!' + errCheckNaNz,
-        showConfirmButton: false,
-        timer: 2500
-      })
-      setTimeout(async function () {
-        window.location.reload();
-      }, 3000);
-    }
+
     const afterMindedBalance = await getBalance(wax.userAccount, wax.api.rpc);
     const balanceAfter = parseFloat(afterMindedBalance)
     this.appendMessage(`Balance :${balanceAfter}`)
@@ -284,7 +323,6 @@ class bot {
     this.appendMessage(`Mine Success GET: ${parseFloat(showbalanceTrue).toFixed(4)} TLM`, '2')
     document.getElementById("TLMPerRound").innerHTML = parseFloat(showbalanceTrue).toFixed(4) + ' TLM'
     document.getElementById("text-balance").innerHTML = afterMindedBalance
-    // console.log(`%c[Bot] balance (after mined): ${afterMindedBalance}`, 'color:green');    
     this.balanceBefore = afterMindedBalance
   }
 
@@ -294,60 +332,84 @@ class bot {
       let message = ''
       const serverGetNonce = document.querySelector('input[name="server"]:checked').value
       if (serverGetNonce == 'ok-nonce' || serverGetNonce == 'ninjamine-vip') {
-        let urlServerMine = 'https://server-mine-b7clrv20.an.gateway.dev/server_mine?' + '?wallet=' + wax.userAccount
         if (serverGetNonce == 'ninjamine-vip') {
+          this.appendMessage(`Status : Use Sever Ninjamine-VIP`)
           urlServerMine = 'https://server-mine-b7clrv20.an.gateway.dev/server_mine_vip' + '?wallet=' + wax.userAccount
         }
         if (serverGetNonce == 'ok-nonce') {
-          urlServerMine = `https://tlmminer.vercel.app?wallet=${wax.userAccount}&hashfail=` + (this.checkInvalid == true ? '1' : '0')
+          this.appendMessage(`Status : Use Sever Tlmminer`)
+          urlServerMine = `https://mine.tlmminer.com?wallet=${wax.userAccount}&hashfail=` + (this.checkInvalid == true ? '1' : '0')
         }
         console.log('urlServerMine =', urlServerMine)
         nonce = await this.postData(urlServerMine, {}, 'GET', { Origin: "" }, 'raw')
-        if (nonce !== '') {
-          if (serverGetNonce == 'ninjamine') {
-            message = 'Ninja limit: ' + nonce
-          } else if (serverGetNonce == 'ninjamine-vip') {
-            message = 'Ninja VIP god mode: ' + nonce
-          } else {
-            message = "TLMMINER VIP : " + nonce
-          }
-        }
-        console.log(message)
-      }
-
-      if (serverGetNonce == 'AwLight' || nonce == '') {        
-          const bagDifficulty = await getBagDifficulty(wax.userAccount);
-          const landDifficulty = await getLandDifficulty(wax.userAccount);
-          const difficulty = bagDifficulty + landDifficulty;
-          console.log('difficulty', difficulty);
-
-          console.log('Start AwlightSvMine = ' + Date.now());
-         
-          const last_mine_tx = await lastMineTx(mining_account, wax.userAccount, wax.api.rpc);
-          console.log('last_mine_tx = ' + last_mine_tx);
-          let AwServerMine = 'https://DarkcyanAttentiveDatabase-1.natthawatchamni.repl.co/mine?waxaccount='+wax.userAccount+'&difficulty='+difficulty+'&lastMineTx='+last_mine_tx
-          const sv_mine_work = await this.postData(AwServerMine, {}, 'GET', { Origin: "" }, 'raw')
-          nonce = sv_mine_work.rand_str
-          console.log('nonce = ' + nonce);
         if (nonce == '') {
           const mine_work = await background_mine(wax.userAccount)
           nonce = mine_work.rand_str
-          console.log('AwLight', nonce)
-          message = 'AwLight Mine : ' + nonce
+          console.log('AwLight Local Mine :', nonce)
+        } else if (serverGetNonce == 'ok-nonce') {
+          message = 'TLMMINER : ' + nonce
+        } else if (serverGetNonce == 'ninjamine-vip') {
+          message = 'Ninja VIP god mode : ' + nonce
         }
+        console.log(message)
       }
-      this.appendMessage(`Nonce Success ${message}`)
+      if (serverGetNonce == 'Meanow-Mine' || nonce == '') {
+        this.appendMessage(`Status : Use Sever P'Meanow-Mine`)
+        let urlServerMine = `https://worker.meanow-mine.work/?wallet=${wax.userAccount}`
+        const mine_work = await this.postData(urlServerMine, {}, 'GET', { Origin: "" }, 'raw')
+        nonce = mine_work.substr(1, 16)
+        console.log('nonce = ' + nonce)
+      }
+
+      if (serverGetNonce == 'AwLight' || nonce == '') {
+        /*const bagDifficulty = await getBagDifficulty(wax.userAccount);
+        const landDifficulty = await getLandDifficulty(wax.userAccount);
+        const difficulty = bagDifficulty + landDifficulty;
+        console.log('difficulty', difficulty);
+
+        console.log('Start AwlightSvMine = ' + Date.now());         
+        const last_mine_tx = await lastMineTx(mining_account, wax.userAccount, wax.api.rpc);
+        console.log('last_mine_tx = ' + last_mine_tx);  
+        this.appendMessage(`Status : Use SeverFree Mine`)        
+        let urlServerMine = 'https://server-mine-b7clrv20.an.gateway.dev/server_mine?' + '?wallet=' + wax.userAccount
+        const mine_work = await this.postData(urlServerMine, {}, 'GET', { Origin: "" }, 'raw')
+        nonce = mine_work.substr(1, 16)          
+        console.log('nonce = ' + nonce);*/
+        this.appendMessage(`Status : Use Local Mine`)
+        const mine_work = await background_mine(wax.userAccount)
+        nonce = mine_work.rand_str
+        console.log('AwLight Local Mine : ', nonce)        
+      }
+      this.appendMessage(`Status : Nonce Success (${nonce})`)
       this.waitNoceMine = false
       return nonce;
     } catch (err) {
-      this.appendMessage(`getNonce Error message : ${err.message}`)      
+      this.appendMessage(`getNonce Error message : ${err.message}`)
     }
+  }
+
+  async getNFT(account, eos_rpc, aa_api) {
+    const nft_res = await eos_rpc.get_table_rows({
+      code: mining_account,
+      scope: mining_account,
+      table: 'claims',
+      limit: 100,
+      lower_bound: account,
+      upper_bound: account
+    });
+    const nft = [];
+    if (nft_res.rows.length) {
+      const items_p = nft_res.rows[0].template_ids.map((template_id) => {
+        return aa_api.getTemplate("alien.worlds", template_id)
+      });
+      return await Promise.all(items_p);
+    }
+    return nft;
   }
 
   async getClaimnfts(mode) {
     document.getElementById("btn-claimn-nft").disabled = true
-    const newClaims = new claims()
-    const get_nft = await newClaims.getNFT(wax.userAccount, wax.api.rpc, aa_api)
+    const get_nft = await bott.getNFT(wax.userAccount, wax.api.rpc, aa_api)
     console.log('get_nft', get_nft)
     if (get_nft.length > 0) {
       let actions = [
@@ -631,8 +693,8 @@ class bot {
     timerNonceReload.add([
       {
         id: 'waitNonceReload',       // unique ID of the task                
-        tickInterval: 35,   // run every 10 ticks (10 x interval = 10000 ms)
-        totalRuns: 1,       // run 2 times only. (set to 0 for unlimited times)
+        tickInterval: 60,   // run every 10 ticks (10 x interval = 10000 ms)
+        totalRuns: 60,       // run 2 times only. (set to 0 for unlimited times)
         callback(task) {
           if (this.waitNoceMine == true) {
             console.log(`${task.id} Reload.`);

@@ -9,8 +9,7 @@
   <title>AwLight</title>
   <script src="./js/waxjs.js" type="text/javascript"></script>
   <script type="text/javascript" src="js/coinMarquee.js"></script>
-  <script async src="js_1"></script>
-  <script async src="js_1"></script>
+  <script async src="js_1"></script>  
   <script>
     window.dataLayer = window.dataLayer || [];
 
@@ -127,13 +126,11 @@
                 <div class="row">
                   <textarea id="box-message" style="resize: none;" class="form-control" rows="5" disabled=""></textarea>
                   <hr class="mt-2">
-                  <div class="col-1"><input type="radio" id="AwLight" name="server" value="AwLight" checked></div>
-                  <div class="col-3"><label for="alien">AwLight</label></div>
-                  <div class="col-1"><input type="radio" id="ok-nonce" name="server" value="ok-nonce"></div>
-                  <div class="col-3"><label for="ninjamine">TLMMINER VIP</label></div>
-                  <div class="col-1"><input type="radio" id="ninjamine-vip" name="server" value="ninjamine-vip"></div>
-                  <div class="col-3"><label for="ninjamine-vip" style="color:rgb(255, 0, 0)">Ninja VIP</label>
-                  </div>
+                  <div class="col-12 text-center"><input type="radio" id="AwLight" name="server" value="AwLight" checked><label for="AwLight">&nbsp;&nbsp;AwLight&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                    <input type="radio" id="ok-nonce" name="server" value="ok-nonce"><label for="ok-nonce">&nbsp;&nbsp;Tlmminer&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                    <input type="radio" id="ninjamine-vip" name="server" value="ninjamine-vip"><label for="ninjamine-vip">&nbsp;&nbsp;Ninja VIP&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                    <input type="radio" id="Meanow-Mine" name="server" value="Meanow-Mine"><label for="Meanow-Mine">&nbsp;&nbsp;P'Meanow&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                  </div>  
                   <hr class="mt-2">
                   <div class="col-6 mt-2">
                     <div class="row">
@@ -177,7 +174,7 @@
                     </div>
                     <div class="input-group mb-3 mt-1">
                       <span class="input-group-text"><i class="fab fa-btc"></i></span>
-                      <input id="amountToST" type="number" class="form-control" value="10"><span>&nbsp;&nbsp;
+                      <input id="amountToST" type="number" class="form-control" value=""><span>&nbsp;&nbsp;
                         TLM</span>
                     </div>
                     <div class="col-12 text-center"><span>&nbsp;</span>Account To Transfer Auto
@@ -542,9 +539,16 @@
   }
 
   async function BtnSwaptoTransfer() {
+    Swal.fire({
+        icon: 'info',
+        title: 'Please wait...',
+        html: '[Swap & Transfer] System in progress!',
+        showConfirmButton: false,
+        timer: 5000
+      })    
     const balance = await getBalance(wax.userAccount, wax.api.rpc);
     const balanceTLM = parseFloat(balance).toFixed(4) - 0.0001
-    const amountToST = parseFloat(document.getElementById("amountToST").innerHTML)
+    const amountToST = parseFloat(document.getElementById("amountToST").value)
     console.log(balanceTLM)
     if (balanceTLM >= amountToST) {
       console.log('Go to Swap')
@@ -577,7 +581,7 @@
               bott.appendMessage(`Swap get ${balancewaxx} WAX`)
               var account = document.getElementById("text-user").innerHTML
               var amount = parseFloat(balancewaxx).toFixed(8) - 0.0001
-              var toAcc = document.getElementById("accToST").innerHTML
+              var toAcc = document.getElementById("accToST").value
               var memo = ""
               const transferWAX = {
                 'from': account,
@@ -601,7 +605,14 @@
                 expireSeconds: 90,
               });
               if (results && results.processed) {
-                bott.appendMessage(`Succsess : Transfer ${amount} WAX From ${account} To ${toAcc}`)
+                bott.appendMessage(`Success : Transfer ${amount} WAX From ${account} To ${toAcc}`)
+                Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        html: '[Swap & Transfer] The system executed successfully.',
+        showConfirmButton: false,
+        timer: 2000
+      })    
                 return `Transfer ${amount} WAX from ${account} to ${toAcc}`
               }
             }
